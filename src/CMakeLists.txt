@@ -10,7 +10,7 @@ add_executable(blockgam-e
 target_link_libraries(blockgam-e PkgConfig::SDL2 PkgConfig::SDL2TTF)
 
 if(MSVC)
-    target_compile_options(blockgam-e PRIVATE /W4 /WX)
+    target_compile_options(blockgam-e PRIVATE /W4)
 else()
     target_compile_options(blockgam-e PRIVATE -Wall -Wextra -Wpedantic)
 endif()

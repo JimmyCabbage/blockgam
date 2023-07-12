@@ -15,6 +15,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#define SDL_MAIN_HANDLED
 #include "SDL.h"
 
 #include "g_main.h"

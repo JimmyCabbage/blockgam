@@ -118,6 +118,8 @@ inline static void CreateMenus(game_t* game)
 
 game_t* G_Init()
 {
+    SDL_SetMainReady();
+
     srand(time(NULL));
     
     game_t* game = malloc(sizeof(game_t));
