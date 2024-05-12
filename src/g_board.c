@@ -68,7 +68,7 @@ void G_SetBoardSpace(board_t* board, int x, int y, uint8_t val)
     board->grid[GRID_WIDTH * y + x] = val;
 }
 
-void G_CheckBoardClear(board_t* board)
+bool G_TryBoardClear(board_t* board)
 {
     int lineClear = -1;
     
@@ -106,5 +106,9 @@ void G_CheckBoardClear(board_t* board)
         {
             memcpy(board->grid + (GRID_WIDTH * lineClear), board->grid + (GRID_WIDTH * (lineClear + 1)), sizeof(uint8_t) * (GRID_HEIGHT - lineClear - 1) * GRID_WIDTH);
         }
+
+        return true;
     }
+
+    return false;
 }

@@ -358,7 +358,10 @@ inline static void TryRunTicks(game_t* game)
                 }
             }
             
-            G_CheckBoardClear(game->board);
+            if (G_TryBoardClear(game->board) && game->pieceDropSpeed > 4)
+            {
+                game->pieceDropSpeed--;
+            }
             break;
         case GAMESTATE_FAIL:
             if (--game->failTimer == 0)

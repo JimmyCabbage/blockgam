@@ -38,6 +38,6 @@ uint8_t G_GetBoardSpace(board_t* board, int x, int y);
 
 void G_SetBoardSpace(board_t* board, int x, int y, uint8_t val);
 
-void G_CheckBoardClear(board_t* board);
+bool G_TryBoardClear(board_t* board);
 
 #endif //TEBRIS_G_BOARD_H
