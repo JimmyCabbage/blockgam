@@ -21,18 +21,21 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "s_alloc.h"
+
 struct board_s
 {
+    alloc_t* alloc;
     uint8_t* grid;
 };
 
 #define GRID_SIZE (GRID_WIDTH * GRID_HEIGHT * sizeof(uint8_t))
 
-board_t* G_CreateBoard()
+board_t* G_CreateBoard(struct alloc_s* alloc)
 {
-    board_t* board = malloc(sizeof(board_t));
+    board_t* board = S_Allocate(alloc, sizeof(board_t));
     
-    board->grid = malloc(GRID_SIZE);
+    board->grid = S_Allocate(alloc, GRID_SIZE);
     memset(board->grid, 0, GRID_SIZE);
     
     return board;
@@ -40,9 +43,14 @@ board_t* G_CreateBoard()
 
 void G_DestroyBoard(board_t* board)
 {
-    free(board->grid);
-    
-    free(board);
+    if (!board)
+    {
+        return;
+    }
+
+    S_Free(board->alloc, board->grid);
+
+    S_Free(board->alloc, board);
 }
 
 void G_ClearBoard(board_t* board)

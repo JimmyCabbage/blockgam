@@ -15,32 +15,59 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#define SDL_MAIN_HANDLED
-#include "SDL.h"
-
 #include "s_alloc.h"
-#include "g_main.h"
 
-int main(int argc, char** argv)
+#include <stdio.h>
+#include <stdlib.h>
+
+struct alloc_s
 {
-    alloc_t* alloc = S_CreateAlloc();
+    int totalAlloc;
+    //empty for now
+};
+
+alloc_t* S_CreateAlloc()
+{
+    alloc_t* alloc = malloc(sizeof(alloc_t));
+    alloc->totalAlloc = 0;
+
+    return alloc;
+}
+
+void S_DestroyAlloc(alloc_t* alloc)
+{
     if (!alloc)
     {
-        fputs("Failed to initialize memory allocator\n", stderr);
+        return;
     }
 
-    game_t* game = G_Init(alloc);
-    if (!game)
-    {
-        fputs("Failed to initialize game\n", stderr);
-        return 1;
-    }
-
-    G_RunGame(game);
-    
-    G_Quit(game);
-   
-    S_DestroyAlloc(alloc);
-
-    return 0;
+    printf("Bytes allocated: %d\n", alloc->totalAlloc);
+    free(alloc);
 }
+
+void* S_Allocate(alloc_t* alloc, size_t size)
+{
+    if (!alloc)
+    {
+        fputs("Tried to alloc with null alloc", stderr);
+        return;
+    }
+
+    void* ptr = malloc(size);
+    memset(ptr, 0, size);
+
+    alloc->totalAlloc += size;
+
+    return ptr;
+}
+
+void* S_Reallocate(alloc_t* alloc, void* ptr, size_t size)
+{
+    return realloc(ptr, size);
+}
+
+void S_Free(alloc_t* alloc, void* ptr)
+{
+    free(ptr);
+}
+

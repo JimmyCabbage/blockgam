@@ -22,6 +22,7 @@
 #include <stdint.h>
 
 struct board_s;
+struct alloc_s;
 
 #define PIECE_WIDTH (5)
 #define PIECE_HEIGHT (5)
@@ -40,7 +41,7 @@ typedef enum piecetype_e
     PIECETYPE_END
 } piecetype_t;
 
-piece_t* G_CreatePiece(piecetype_t type, int x, int y);
+piece_t* G_CreatePiece(struct alloc_s* alloc, piecetype_t type, int x, int y);
 
 void G_DestroyPiece(piece_t* piece);
 

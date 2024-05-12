@@ -15,32 +15,21 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#define SDL_MAIN_HANDLED
-#include "SDL.h"
+#ifndef TEBRIS_S_ALLOC_H
+#define TEBRIS_S_ALLOC_H
 
-#include "s_alloc.h"
-#include "g_main.h"
+#include <string.h>
 
-int main(int argc, char** argv)
-{
-    alloc_t* alloc = S_CreateAlloc();
-    if (!alloc)
-    {
-        fputs("Failed to initialize memory allocator\n", stderr);
-    }
+typedef struct alloc_s alloc_t;
 
-    game_t* game = G_Init(alloc);
-    if (!game)
-    {
-        fputs("Failed to initialize game\n", stderr);
-        return 1;
-    }
+alloc_t* S_CreateAlloc();
 
-    G_RunGame(game);
-    
-    G_Quit(game);
-   
-    S_DestroyAlloc(alloc);
+void S_DestroyAlloc(alloc_t* alloc);
 
-    return 0;
-}
+void* S_Allocate(alloc_t* alloc, size_t size);
+
+void* S_Reallocate(alloc_t* alloc, void* ptr, size_t size);
+
+void S_Free(alloc_t* alloc, void* ptr);
+
+#endif

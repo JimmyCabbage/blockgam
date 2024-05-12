@@ -5,7 +5,9 @@ add_executable(blockgam-e
                g_piece.c g_piece.h
                g_ticktimer.c g_ticktimer.h
                m_menu.c m_menu.h
-               v_video.c v_video.h g_board.h g_board.c)
+               v_video.c v_video.h
+			    g_board.c g_board.h
+		        s_alloc.c s_alloc.h)
 
 target_link_libraries(blockgam-e PkgConfig::SDL2 PkgConfig::SDL2TTF)
 

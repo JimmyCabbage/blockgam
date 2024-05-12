@@ -18,6 +18,8 @@
 #ifndef TEBRIS_G_MAIN_H
 #define TEBRIS_G_MAIN_H
 
+struct alloc_s;
+
 typedef enum gamestate_e
 {
     GAMESTATE_MENU,
@@ -27,7 +29,7 @@ typedef enum gamestate_e
 
 typedef struct game_s game_t;
 
-game_t* G_Init();
+game_t* G_Init(struct alloc_s* alloc);
 
 void G_RunGame(game_t* game);
 

@@ -19,8 +19,12 @@
 
 #include <stdlib.h>
 
+#include "s_alloc.h"
+
 struct menu_s
 {
+    alloc_t* alloc;
+    
     menulist_t** lists;
     int32_t numLists;
     
@@ -28,10 +32,12 @@ struct menu_s
     size_t currentItem;
 };
 
-menu_t* M_Init()
+menu_t* M_Init(struct alloc_s* alloc)
 {
-    menu_t* menu = malloc(sizeof(menu_t));
+    menu_t* menu = S_Allocate(alloc, sizeof(menu_t));
     
+    menu->alloc = alloc;
+
     menu->lists = NULL;
     menu->numLists = 0;
     
@@ -45,7 +51,7 @@ int32_t M_AddList(menu_t* menu, menulist_t* list)
 {
     const int32_t currentList = menu->numLists++;
     
-    menu->lists = realloc(menu->lists, menu->numLists * sizeof(menulist_t*));
+    menu->lists = S_Reallocate(menu->alloc, menu->lists, menu->numLists * sizeof(menulist_t*));
     
     menu->lists[currentList] = list;
     
@@ -91,19 +97,24 @@ void M_UseCurrentItem(menu_t* menu)
 
 void M_Quit(menu_t *menu)
 {
+    if (!menu)
+    {
+        return;
+    }
+
     for (size_t i = 0; i < (size_t)menu->numLists; i++)
     {
         for (size_t j = 0; j < menu->lists[i]->numItems; j++)
         {
-            free(menu->lists[i]->items[j]);
+            S_Free(menu->alloc, menu->lists[i]->items[j]);
         }
         
-        free(menu->lists[i]->items);
+        S_Free(menu->alloc, menu->lists[i]->items);
         
-        free(menu->lists[i]);
+        S_Free(menu->alloc, menu->lists[i]);
     }
     
-    free(menu->lists);
+    S_Free(menu->alloc, menu->lists);
     
-    free(menu);
+    S_Free(menu->alloc, menu);
 }

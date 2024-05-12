@@ -19,17 +19,22 @@
 
 #include "SDL.h"
 
+#include "s_alloc.h"
+
 struct ticktimer_s
 {
+    alloc_t* alloc;
     uint64_t startTime;
 };
 
-ticktimer_t* G_CreateTimer()
+ticktimer_t* G_CreateTimer(struct alloc_s* alloc)
 {
     SDL_InitSubSystem(SDL_INIT_TIMER);
     
-    ticktimer_t* timer = malloc(sizeof(ticktimer_t));
+    ticktimer_t* timer = S_Allocate(alloc, sizeof(ticktimer_t));
     
+    timer->alloc = alloc;
+
     timer->startTime = SDL_GetTicks64();
     
     return timer;
@@ -37,7 +42,7 @@ ticktimer_t* G_CreateTimer()
 
 void G_DestroyTimer(ticktimer_t* timer)
 {
-    free(timer);
+    S_Free(timer->alloc, timer);
     
     SDL_QuitSubSystem(SDL_INIT_TIMER);
 }

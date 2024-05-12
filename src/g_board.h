@@ -24,9 +24,11 @@
 #define GRID_WIDTH (10)
 #define GRID_HEIGHT (30)
 
+struct alloc_s;
+
 typedef struct board_s board_t;
 
-board_t* G_CreateBoard();
+board_t* G_CreateBoard(struct alloc_s* alloc);
 
 void G_DestroyBoard(board_t* board);
 

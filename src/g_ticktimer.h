@@ -20,11 +20,13 @@
 
 #include <stdint.h>
 
+struct alloc_s;
+
 typedef struct ticktimer_s ticktimer_t;
 
 #define TICK_RATE (64)
 
-ticktimer_t* G_CreateTimer();
+ticktimer_t* G_CreateTimer(struct alloc_s* alloc);
 
 void G_DestroyTimer(ticktimer_t* timer);
 

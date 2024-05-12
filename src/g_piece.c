@@ -22,10 +22,12 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "s_alloc.h"
 #include "g_board.h"
 
 struct piece_s
 {
+    alloc_t* alloc;
     piecetype_t type;
     uint8_t* data;
     uint8_t* oldData;
@@ -52,16 +54,17 @@ inline static void SetPieceSpace(piece_t* piece, int x, int y, uint8_t val)
     *loc = val;
 }
 
-piece_t* G_CreatePiece(piecetype_t type, int x, int y)
+piece_t* G_CreatePiece(struct alloc_s* alloc, piecetype_t type, int x, int y)
 {
-    piece_t* piece = malloc(sizeof(piece_t));
-    
+    piece_t* piece = S_Allocate(alloc, sizeof(piece_t));
+   
+    piece->alloc = alloc;
+
     piece->type = type;
     
-    piece->data = malloc(PIECE_SIZE);
-    memset(piece->data, 0, PIECE_SIZE);
+    piece->data = S_Allocate(alloc, PIECE_SIZE);
     
-    piece->oldData = malloc(PIECE_SIZE);
+    piece->oldData = S_Allocate(alloc, PIECE_SIZE);
     
     piece->x = x;
     piece->y = y;
@@ -120,11 +123,16 @@ piece_t* G_CreatePiece(piecetype_t type, int x, int y)
 
 void G_DestroyPiece(piece_t* piece)
 {
-    free(piece->oldData);
+    if (piece)
+    {
+        return;
+    }
+
+    S_Free(piece->alloc, piece->oldData);
     
-    free(piece->data);
+    S_Free(piece->alloc, piece->data);
     
-    free(piece);
+    S_Free(piece->alloc, piece);
 }
 
 inline static bool IsRotatableType(piecetype_t type)

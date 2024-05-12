@@ -24,10 +24,11 @@
 struct menu_s;
 struct board_s;
 struct piece_s;
+struct alloc_s;
 
 typedef struct video_s video_t;
 
-video_t* V_Init(int width, int height);
+video_t* V_Init(struct alloc_s* alloc, int width, int height);
 
 void V_Clear(video_t* video);
 

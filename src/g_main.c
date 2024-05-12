@@ -23,6 +23,7 @@
 
 #include "SDL.h"
 
+#include "s_alloc.h"
 #include "v_video.h"
 #include "m_menu.h"
 #include "g_board.h"
@@ -31,6 +32,8 @@
 
 struct game_s
 {
+    alloc_t* alloc;
+
     bool run;
     
     gamestate_t state;
@@ -87,63 +90,99 @@ static void Quit(menuitem_t* item)
     quit->game->run = false;
 }
 
-inline static void CreateMenus(game_t* game)
+inline static bool CreateMenus(game_t* game)
 {
-    menulist_t* mainMenuList = malloc(sizeof(menulist_t));
+    menulist_t* mainMenuList = S_Allocate(game->alloc, sizeof(menulist_t));
+    if (!mainMenuList)
+    {
+        fputs("Failed to allocate memory for main menu list\n", stderr);
+        return false;
+    }
+
     int32_t mainMenuId = M_AddList(game->menu, mainMenuList);
-    
-    mainMenuList->items = malloc(3 * sizeof(menuitem_t*));
+
+    mainMenuList->items = S_Allocate(game->alloc, 3 * sizeof(menuitem_t*));
     mainMenuList->numItems = 3;
     
-    gameitem_t* start = malloc(sizeof(gameitem_t));
+    gameitem_t* start = S_Allocate(game->alloc, sizeof(gameitem_t));
     mainMenuList->items[0] = &start->item;
     start->item.callback = StartGame;
     start->item.label = "Start Game";
     start->game = game;
     
-    gameitem_t* settings = malloc(sizeof(gameitem_t));
+    gameitem_t* settings = S_Allocate(game->alloc, sizeof(gameitem_t));
     mainMenuList->items[1] = &settings->item;
     settings->item.callback = Settings;
     settings->item.label = "Settings";
     settings->game = game;
     
-    gameitem_t* quit = malloc(sizeof(gameitem_t));
+    gameitem_t* quit = S_Allocate(game->alloc, sizeof(gameitem_t));
     mainMenuList->items[2] = &quit->item;
     quit->item.callback = Quit;
     quit->item.label = "Quit";
     quit->game = game;
     
     M_SetList(game->menu, mainMenuId);
+
+    return true;
 }
 
-game_t* G_Init()
+game_t* G_Init(alloc_t* alloc)
 {
     SDL_SetMainReady();
 
     srand(time(NULL));
     
-    game_t* game = malloc(sizeof(game_t));
-    
+    game_t* game = S_Allocate(alloc, sizeof(game_t));
+    if (!game)
+    {
+        fputs("Failed to allocate memory for game\n", stderr);
+        goto fail;
+    }
+
+    game->alloc = alloc;
+
     game->run = false;
     
     game->state = GAMESTATE_MENU;
     
-    game->video = V_Init(1024, 724);
+    if (!(game->video = V_Init(alloc, 1024, 724)))
+    {
+        fputs("Failed to initialize video\n", stderr);
+        goto fail;
+    }
     
-    game->menu = M_Init();
+    if (!(game->menu = M_Init(alloc)))
+    {
+        fputs("Failed to initialize menu\n", stderr);
+        goto fail;
+    }
     
-    game->board = G_CreateBoard();
+    if (!(game->board = G_CreateBoard(alloc)))
+    {
+        fputs("Failed to initialize board\n", stderr);
+        goto fail;
+    }
     
     game->currPiece = NULL;
     game->currPieceDrop = 0;
     
-    game->timer = G_CreateTimer();
+    game->timer = G_CreateTimer(alloc);
     
     game->lastTick = 0;
     
-    CreateMenus(game);
+    if (!CreateMenus(game))
+    {
+        fputs("Failed to create sub-menus\n", stderr);
+        goto fail;
+    }
     
     return game;
+
+fail:
+    G_Quit(game);
+
+    return NULL;
 }
 
 inline static bool TryDropPiece(game_t* game)
@@ -195,15 +234,19 @@ inline static void ProcessEvents(game_t* game)
                 {
                     switch (ev.key.keysym.sym)
                     {
+                    case SDLK_SPACE:
                     case SDLK_UP:
                         G_TryPieceRotate(game->currPiece, game->board);
                         break;
+                    case SDLK_d:
                     case SDLK_RIGHT:
                         G_TryPieceRight(game->currPiece, game->board);
                         break;
+                    case SDLK_a:
                     case SDLK_LEFT:
                         G_TryPieceLeft(game->currPiece, game->board);
                         break;
+                    case SDLK_s:
                     case SDLK_DOWN:
                         TryDropPiece(game);
                         break;
@@ -266,7 +309,7 @@ inline static piece_t* ChooseRandomPiece(game_t* game)
         game->pieceDropSpeed--;
     }
     
-    return G_CreatePiece(type, spawnX, spawnY);
+    return G_CreatePiece(game->alloc, type, spawnX, spawnY);
 }
 
 inline static void TryRunTicks(game_t* game)
@@ -343,6 +386,11 @@ void G_RunGame(game_t* game)
 
 void G_Quit(game_t* game)
 {
+    if (!game)
+    {
+        return;
+    }
+
     if (game->currPiece)
     {
         G_DestroyPiece(game->currPiece);
@@ -356,5 +404,5 @@ void G_Quit(game_t* game)
     
     V_Quit(game->video);
     
-    free(game);
+    S_Free(game->alloc, game);
 }

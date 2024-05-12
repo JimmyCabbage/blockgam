@@ -20,6 +20,7 @@
 #include "SDL.h"
 #include "SDL_ttf.h"
 
+#include "s_alloc.h"
 #include "m_menu.h"
 #include "g_board.h"
 #include "g_piece.h"
@@ -34,6 +35,8 @@ typedef struct internal_texture_s
 
 struct video_s
 {
+    alloc_t* alloc;
+
     SDL_Window* window;
     SDL_Renderer* renderer;
     
@@ -48,9 +51,11 @@ struct video_s
     size_t textureCacheLength;
 };
 
-video_t* V_Init(int width, int height)
+video_t* V_Init(alloc_t* alloc, int width, int height)
 {
-    video_t* video = malloc(sizeof(video_t));
+    video_t* video = S_Allocate(alloc, sizeof(video_t));
+
+    video->alloc = alloc;
     
     //who needs error checking
     SDL_InitSubSystem(SDL_INIT_VIDEO);
@@ -59,9 +64,17 @@ video_t* V_Init(int width, int height)
     
     video->renderer = SDL_CreateRenderer(video->window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     
-    TTF_Init();
+    if (TTF_Init() == -1)
+    {
+        fputs("Failed to initialize SDL_ttf\n", stderr);
+        return NULL;
+    }
     
-    video->font = TTF_OpenFont("consolas.ttf", 24);
+    if (!(video->font = TTF_OpenFont("consolas.ttf", 24)))
+    {
+        fputs("Failed to open consolas.ttf\n", stderr);
+        return NULL;
+    }
     
     video->width = width;
     video->height = height;
@@ -96,7 +109,7 @@ inline static internal_texture_t* GetCachedTexture(video_t* video, const char* t
     }
     
     const size_t newTextureNum = video->textureCacheLength++;
-    video->textureCache = realloc(video->textureCache, sizeof(internal_texture_t) * video->textureCacheLength);
+    video->textureCache = S_Reallocate(video->alloc, video->textureCache, sizeof(internal_texture_t) * video->textureCacheLength);
     
     SDL_Color textColor = { 255, 255, 255, 255 };
     SDL_Surface* surface = TTF_RenderText_Solid(video->font, text, textColor);
@@ -104,8 +117,7 @@ inline static internal_texture_t* GetCachedTexture(video_t* video, const char* t
     internal_texture_t* texture = video->textureCache + newTextureNum;
     
     size_t nameLength = strlen(text);
-    texture->name = malloc(nameLength + 1);
-    memset(texture->name, 0, nameLength + 1);
+    texture->name = S_Allocate(video->alloc, nameLength + 1);
     memcpy(texture->name, text, nameLength);
     
     texture->handle = SDL_CreateTextureFromSurface(video->renderer, surface);
@@ -318,9 +330,9 @@ void V_Quit(video_t* video)
     for (size_t i = 0; i < video->textureCacheLength; i++)
     {
         SDL_DestroyTexture(video->textureCache[i].handle);
-        free(video->textureCache[i].name);
+        S_Free(video->alloc, video->textureCache[i].name);
     }
-    free(video->textureCache);
+    S_Free(video->alloc, video->textureCache);
     
     TTF_CloseFont(video->font);
     
@@ -332,7 +344,7 @@ void V_Quit(video_t* video)
     
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
     
-    free(video);
+    S_Free(video->alloc, video);
 }
 
 void V_WindowResized(video_t* video, int w, int h)

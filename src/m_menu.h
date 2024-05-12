@@ -22,6 +22,7 @@
 #include <string.h>
 
 struct menuitem_s;
+struct alloc_s;
 
 typedef void (*menucallback_t)(struct menuitem_s*);
 
@@ -39,7 +40,7 @@ typedef struct menulist_s
 
 typedef struct menu_s menu_t;
 
-menu_t* M_Init();
+menu_t* M_Init(struct alloc_s* alloc);
 
 int32_t M_AddList(menu_t* menu, menulist_t* list);
 
