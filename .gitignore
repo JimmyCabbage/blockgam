@@ -1,6 +1,9 @@
-cmake-build-debug/
-cmake-build-release/
-out/build/
-.idea/
-.vs/
-*.swp
+*
+.*
+!.gitignore
+!cmake/
+!src/*.c
+!src/*.h
+!COPYING.txt
+!README.txt
+!CMakeSettings.txt
