@@ -180,7 +180,8 @@ game_t* G_Init(alloc_t* alloc)
     return game;
 
 fail:
-    G_Quit(game);
+	if (game)
+		G_Quit(game);
 
     return NULL;
 }
@@ -389,23 +390,22 @@ void G_RunGame(game_t* game)
 
 void G_Quit(game_t* game)
 {
-    if (!game)
-    {
-        return;
-    }
-
     if (game->currPiece)
     {
         G_DestroyPiece(game->currPiece);
     }
     
-    G_DestroyTimer(game->timer);
+	if (game->timer)
+		G_DestroyTimer(game->timer);
     
-    G_DestroyBoard(game->board);
+	if (game->board)
+		G_DestroyBoard(game->board);
     
-    M_Quit(game->menu);
+	if (game->menu)
+		M_Quit(game->menu);
     
-    V_Quit(game->video);
+	if (game->video)
+		V_Quit(game->video);
     
     S_Free(game->alloc, game);
 }

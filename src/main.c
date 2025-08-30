@@ -27,6 +27,7 @@ int main(int argc, char** argv)
     if (!alloc)
     {
         fputs("Failed to initialize memory allocator\n", stderr);
+		return 1;
     }
 
     game_t* game = G_Init(alloc);

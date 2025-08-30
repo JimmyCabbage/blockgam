@@ -6,8 +6,8 @@ add_executable(blockgam-e
                g_ticktimer.c g_ticktimer.h
                m_menu.c m_menu.h
                v_video.c v_video.h
-			    g_board.c g_board.h
-		        s_alloc.c s_alloc.h)
+               g_board.c g_board.h
+               s_alloc.c s_alloc.h)
 
 target_link_libraries(blockgam-e PkgConfig::SDL2 PkgConfig::SDL2TTF)
 
@@ -16,3 +16,8 @@ if(MSVC)
 else()
     target_compile_options(blockgam-e PRIVATE -Wall -Wextra -Wpedantic)
 endif()
+
+set(BLOCKGAM_FONT_DIR "${CMAKE_INSTALL_PREFIX}/share/blockgam/fonts")
+target_compile_definitions(blockgam-e PRIVATE BLOCKGAM_FONT_DIR="${BLOCKGAM_FONT_DIR}")
+
+install(TARGETS blockgam-e DESTINATION bin)

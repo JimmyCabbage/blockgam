@@ -1,9 +1,11 @@
 *
 .*
 !.gitignore
-!cmake/
+!cmake/SDL2Config.cmake
 !src/*.c
 !src/*.h
 !COPYING.txt
 !README.txt
 !CMakeSettings.txt
+!fonts/*.ttf
+!fonts/LICENSE

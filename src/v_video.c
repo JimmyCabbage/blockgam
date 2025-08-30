@@ -17,6 +17,16 @@
 
 #include "v_video.h"
 
+#include <stdio.h>
+#include <string.h>
+
+#if defined(__linux__)
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <dirent.h>
+#include <fcntl.h>
+#endif
+
 #include "SDL.h"
 #include "SDL_ttf.h"
 
@@ -51,6 +61,119 @@ struct video_s
     size_t textureCacheLength;
 };
 
+#if defined(__unix__)
+static TTF_Font* SearchDirForFont(alloc_t *alloc, const char *path, const size_t pathLen)
+{
+	DIR *fontDir;
+	struct dirent *fontEnt;
+	const char *ext;
+	TTF_Font *font;
+
+	if ((fontDir = opendir(path)) == NULL)
+		return NULL;
+
+	font = NULL;
+	while ((fontEnt = readdir(fontDir)) != NULL)
+	{
+		ext = strrchr(fontEnt->d_name, '.');
+		if (strncmp(fontEnt->d_name, ".", 1) == 0 ||
+			ext == NULL ||
+			strcmp(ext, ".ttf") != 0)
+			continue;
+
+		const size_t fileLen = strlen(fontEnt->d_name);
+		const size_t fullpathLen = fileLen + pathLen + 2;
+		char *fullpath = S_Allocate(alloc, sizeof(char) * fullpathLen);
+
+		if (!fullpath)
+			continue;
+
+		memset(fullpath, 0, sizeof(char) * fullpathLen);
+		memcpy(fullpath, path, sizeof(char) * pathLen);
+		fullpath[pathLen] = '/';
+		memcpy(fullpath + pathLen + 1, fontEnt->d_name, fileLen);
+
+		font = TTF_OpenFont(fullpath, 28);
+
+		S_Free(alloc, fullpath);
+
+		if (font != NULL)
+		{
+			printf("Choosing font %s...", fullpath);
+			break;
+		}
+	}
+
+	closedir(fontDir);
+	return font;
+}
+#endif
+
+static TTF_Font* ChooseFont(alloc_t* alloc)
+{
+#if defined(__linux__)
+	static const char *directories[] =
+	{
+		"/usr/share/fonts",
+	};
+
+	TTF_Font *foundFont;
+#if defined BLOCKGAM_FONT_DIR
+	if ((foundFont = SearchDirForFont(alloc, BLOCKGAM_FONT_DIR, strlen(BLOCKGAM_FONT_DIR))) != NULL)
+	{
+		return foundFont;
+	}
+#endif
+
+	for (size_t i = 0; i < (sizeof directories / sizeof directories[0]); i++)
+	{
+		DIR *dir;
+		struct dirent *ent;
+		struct stat buf;
+
+		if ((dir = opendir(directories[i])) == NULL)
+			continue;
+
+		while ((ent = readdir(dir)) != NULL)
+		{
+			if (strncmp(ent->d_name, ".", 1) == 0)
+				continue;
+
+			const size_t nameLen = strlen(ent->d_name);
+			const size_t dirLen = strlen(directories[i]);
+			const size_t fullpathLen = nameLen + dirLen + 1 + 1;
+			char *fullpath = S_Allocate(alloc, sizeof(char) * fullpathLen);
+
+			if (fullpath == NULL)
+				continue;
+
+			memset(fullpath, 0, sizeof(char) * fullpathLen);
+			memcpy(fullpath, directories[i], sizeof(char) * dirLen);
+			*(fullpath + dirLen) = '/';
+			memcpy(fullpath + dirLen + 1, ent->d_name, sizeof(char) * nameLen);
+
+			if (stat(fullpath, &buf) == -1 ||
+				!S_ISDIR(buf.st_mode))
+			{
+				free(fullpath);
+				continue;
+			}
+
+			foundFont = SearchDirForFont(alloc, fullpath, fullpathLen - 1);
+
+			S_Free(alloc, fullpath);
+
+			if (foundFont != NULL)
+				break;
+		}
+		closedir(dir);
+	}
+	return foundFont;
+#else
+	return NULL;
+#endif
+}
+
 video_t* V_Init(alloc_t* alloc, int width, int height)
 {
     video_t* video = S_Allocate(alloc, sizeof(video_t));
@@ -70,9 +193,9 @@ video_t* V_Init(alloc_t* alloc, int width, int height)
         return NULL;
     }
     
-    if (!(video->font = TTF_OpenFont("consolas.ttf", 24)))
+    if ((video->font = ChooseFont(video->alloc)) == NULL)
     {
-        fputs("Failed to open consolas.ttf\n", stderr);
+        fputs("Failed to open font file\n", stderr);
         return NULL;
     }
     

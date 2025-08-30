@@ -10,3 +10,5 @@ pkg_check_modules(SDL2 REQUIRED IMPORTED_TARGET sdl2)
 pkg_check_modules(SDL2TTF REQUIRED IMPORTED_TARGET SDL2_ttf)
 
 add_subdirectory("src")
+install(DIRECTORY fonts DESTINATION share/blockgam)
+install(FILES COPYING.txt README.txt DESTINATION share/blockgam)
