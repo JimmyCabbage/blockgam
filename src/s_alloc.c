@@ -50,7 +50,7 @@ void* S_Allocate(alloc_t* alloc, size_t size)
     if (!alloc)
     {
         fputs("Tried to alloc with null alloc", stderr);
-        return;
+        return NULL;
     }
 
     void* ptr = malloc(size);
