@@ -54,21 +54,26 @@ inline static void SetPieceSpace(piece_t* piece, int x, int y, uint8_t val)
     *loc = val;
 }
 
-piece_t* G_CreatePiece(struct alloc_s* alloc, piecetype_t type, int x, int y)
+piece_t* G_AllocatePiece(struct alloc_s* alloc)
 {
     piece_t* piece = S_Allocate(alloc, sizeof(piece_t));
-   
     piece->alloc = alloc;
-
-    piece->type = type;
-    
     piece->data = S_Allocate(alloc, PIECE_SIZE);
     
     piece->oldData = S_Allocate(alloc, PIECE_SIZE);
+
+	return piece;
+}
+
+void G_CreatePiece(piece_t *piece, piecetype_t type, int x, int y)
+{
+    piece->type = type;
     
     piece->x = x;
     piece->y = y;
     
+	memset(piece->data, 0, PIECE_SIZE);
+
     switch (type)
     {
     case PIECETYPE_T:
@@ -117,13 +122,11 @@ piece_t* G_CreatePiece(struct alloc_s* alloc, piecetype_t type, int x, int y)
         fprintf(stderr, "Tried to create unavailable piece\n");
         abort();
     }
-    
-    return piece;
 }
 
 void G_DestroyPiece(piece_t* piece)
 {
-    if (piece)
+    if (!piece)
     {
         return;
     }

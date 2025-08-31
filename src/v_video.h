@@ -42,7 +42,7 @@ void V_DrawPiece(video_t* video, struct piece_s* piece);
 
 void V_DrawLevel(video_t* video, int level);
 
-void V_DrawFailure(video_t* video);
+void V_DrawFailure(video_t* video, int level);
 
 void V_Present(video_t* video);
 

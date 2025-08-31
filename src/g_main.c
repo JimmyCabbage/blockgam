@@ -47,6 +47,7 @@ struct game_s
     int level;
     uint64_t pieceDropSpeed;
     
+	bool pieceExists;
     piece_t* currPiece;
     uint64_t currPieceDrop;
     
@@ -73,7 +74,7 @@ static void StartGame(menuitem_t* item)
     start->game->level = 0;
     start->game->pieceDropSpeed = 24;
     
-    start->game->currPiece = NULL;
+    start->game->pieceExists = false;
     start->game->currPieceDrop = 0;
     
     start->game->lastTick = G_GetTimerTicks(start->game->timer);
@@ -164,7 +165,8 @@ game_t* G_Init(alloc_t* alloc)
         goto fail;
     }
     
-    game->currPiece = NULL;
+	game->pieceExists = false;
+    game->currPiece = G_AllocatePiece(game->alloc);
     game->currPieceDrop = 0;
     
     game->timer = G_CreateTimer(alloc);
@@ -231,7 +233,7 @@ inline static void ProcessEvents(game_t* game)
                 }
                 break;
             case GAMESTATE_PLAY:
-                if (game->currPiece)
+                if (game->pieceExists)
                 {
                     switch (ev.key.keysym.sym)
                     {
@@ -286,21 +288,21 @@ inline static void DrawScreen(game_t* game)
         V_DrawLevel(game->video, game->level);
         break;
     case GAMESTATE_FAIL:
-        V_DrawFailure(game->video);
+        V_DrawFailure(game->video, game->level);
         break;
     }
     
     V_Present(game->video);
 }
 
-inline static piece_t* ChooseRandomPiece(game_t* game)
+static bool ChooseRandomPiece(game_t* game)
 {
     const int spawnX = GRID_WIDTH / 2;
     const int spawnY = 24;
     
     if (G_GetBoardSpace(game->board, spawnX, spawnY) != 0)
     {
-        return NULL;
+        return false;
     }
     
     const int type = rand() % PIECETYPE_END;
@@ -310,7 +312,10 @@ inline static piece_t* ChooseRandomPiece(game_t* game)
         game->pieceDropSpeed--;
     }
     
-    return G_CreatePiece(game->alloc, type, spawnX, spawnY);
+    G_CreatePiece(game->currPiece, type, spawnX, spawnY);
+	game->pieceExists = true;
+
+	return true;
 }
 
 inline static void TryRunTicks(game_t* game)
@@ -334,11 +339,9 @@ inline static void TryRunTicks(game_t* game)
         switch (game->state)
         {
         case GAMESTATE_PLAY:
-            if (!game->currPiece)
+            if (!game->pieceExists)
             {
-                game->currPiece = ChooseRandomPiece(game);
-                
-                if (!game->currPiece)
+                if (!ChooseRandomPiece(game))
                 {
                     game->state = GAMESTATE_FAIL;
                     game->failTimer = TICK_RATE * 4;
@@ -346,15 +349,14 @@ inline static void TryRunTicks(game_t* game)
                 }
             }
             
-            if (game->currPiece)
+            if (game->pieceExists)
             {
                 if (game->currPieceDrop-- == 0)
                 {
                     if (!TryDropPiece(game))
                     {
                         G_InsertPiece(game->currPiece, game->board);
-                        G_DestroyPiece(game->currPiece);
-                        game->currPiece = NULL;
+                        game->pieceExists = false;
                     }
                 }
             }
@@ -391,9 +393,7 @@ void G_RunGame(game_t* game)
 void G_Quit(game_t* game)
 {
     if (game->currPiece)
-    {
-        G_DestroyPiece(game->currPiece);
-    }
+		G_DestroyPiece(game->currPiece);
     
 	if (game->timer)
 		G_DestroyTimer(game->timer);

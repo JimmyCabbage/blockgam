@@ -31,7 +31,7 @@ typedef struct piece_s piece_t;
 
 typedef enum piecetype_e
 {
-    PIECETYPE_T,
+    PIECETYPE_T = 0,
     PIECETYPE_L,
     PIECETYPE_J,
     PIECETYPE_BLOCK,
@@ -41,7 +41,9 @@ typedef enum piecetype_e
     PIECETYPE_END
 } piecetype_t;
 
-piece_t* G_CreatePiece(struct alloc_s* alloc, piecetype_t type, int x, int y);
+piece_t* G_AllocatePiece(struct alloc_s* alloc);
+
+void G_CreatePiece(piece_t* piece, piecetype_t type, int x, int y);
 
 void G_DestroyPiece(piece_t* piece);
 

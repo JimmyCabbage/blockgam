@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#if defined(__linux__)
+#if defined(__unix__)
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
@@ -95,11 +95,15 @@ static TTF_Font* SearchDirForFont(alloc_t *alloc, const char *path, const size_t
 
 		font = TTF_OpenFont(fullpath, 28);
 
+		if (font != NULL)
+		{
+			printf("Font found: %s\n", fullpath);
+		}
+
 		S_Free(alloc, fullpath);
 
 		if (font != NULL)
 		{
-			printf("Choosing font %s...", fullpath);
 			break;
 		}
 	}
@@ -111,19 +115,19 @@ static TTF_Font* SearchDirForFont(alloc_t *alloc, const char *path, const size_t
 
 static TTF_Font* ChooseFont(alloc_t* alloc)
 {
-#if defined(__linux__)
-	static const char *directories[] =
-	{
-		"/usr/share/fonts",
-	};
-
-	TTF_Font *foundFont;
+	TTF_Font *foundFont = NULL;
 #if defined BLOCKGAM_FONT_DIR
 	if ((foundFont = SearchDirForFont(alloc, BLOCKGAM_FONT_DIR, strlen(BLOCKGAM_FONT_DIR))) != NULL)
 	{
 		return foundFont;
 	}
 #endif
+
+#if defined(__linux__)
+	static const char *directories[] =
+	{
+		"/usr/share/fonts",
+	};
 
 	for (size_t i = 0; i < (sizeof directories / sizeof directories[0]); i++)
 	{
@@ -155,7 +159,7 @@ static TTF_Font* ChooseFont(alloc_t* alloc)
 			if (stat(fullpath, &buf) == -1 ||
 				!S_ISDIR(buf.st_mode))
 			{
-				free(fullpath);
+				S_Free(alloc, fullpath);
 				continue;
 			}
 
@@ -168,10 +172,9 @@ static TTF_Font* ChooseFont(alloc_t* alloc)
 		}
 		closedir(dir);
 	}
+#endif	
+
 	return foundFont;
-#else
-	return NULL;
-#endif
 }
 
 video_t* V_Init(alloc_t* alloc, int width, int height)
@@ -438,9 +441,12 @@ void V_DrawLevel(video_t* video, int level)
     DrawText(video, x, 100, strBuf);
 }
 
-void V_DrawFailure(video_t* video)
+void V_DrawFailure(video_t* video, int level)
 {
-    DrawText(video, video->width / 3, video->height / 2, "You Are a Failure");
+    static char strBuf[24];
+    snprintf(strBuf, sizeof strBuf, "Final Score: %d", level);
+
+    DrawText(video, video->width / 3, video->height / 2, strBuf);
 }
 
 void V_Present(video_t* video)
