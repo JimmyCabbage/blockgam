@@ -62,6 +62,62 @@ struct video_s
 };
 
 #if defined(__unix__)
+static bool SubstrPresent(const char *main, size_t mainLen, const char *sub, size_t subLen)
+{
+	for (size_t i = 0; i < mainLen; i++)
+	{
+		if (main[i] != sub[0])
+		{
+			continue;
+		}
+
+		const size_t begin = i;
+		for (; i < begin + subLen; i++)
+		{
+			if (main[i] != sub[i - begin])
+			{
+				break;
+			}
+		}
+
+		if (begin + subLen == i)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static bool IsBadFont(const char *fontName, size_t fontNameLen)
+{
+	static const char *list[] =
+	{
+		"Bold",
+		"Italic",
+		"Emoji",
+		"Rotated",
+	};
+
+	static const size_t listLens[] =
+	{
+		4,
+		6,
+		5,
+		7,
+	};
+
+	for (size_t i = 0; i < sizeof list / sizeof list[0]; i++)
+	{
+		if (SubstrPresent(fontName, fontNameLen, list[i], listLens[i]))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 static TTF_Font* SearchDirForFont(alloc_t *alloc, const char *path, const size_t pathLen)
 {
 	DIR *fontDir;
@@ -82,6 +138,10 @@ static TTF_Font* SearchDirForFont(alloc_t *alloc, const char *path, const size_t
 			continue;
 
 		const size_t fileLen = strlen(fontEnt->d_name);
+
+		if (IsBadFont(fontEnt->d_name, fileLen))
+			continue;
+
 		const size_t fullpathLen = fileLen + pathLen + 2;
 		char *fullpath = S_Allocate(alloc, sizeof(char) * fullpathLen);
 
@@ -224,7 +284,20 @@ void V_SetVisibility(video_t* video, bool visible)
     video->visible = visible;
 }
 
-inline static internal_texture_t* GetCachedTexture(video_t* video, const char* text)
+static void ClearTextureCache(video_t *video)
+{
+    for (size_t i = 0; i < video->textureCacheLength; i++)
+    {
+        SDL_DestroyTexture(video->textureCache[i].handle);
+        S_Free(video->alloc, video->textureCache[i].name);
+    }
+    S_Free(video->alloc, video->textureCache);
+
+	video->textureCache = NULL;
+	video->textureCacheLength = 0;
+}
+
+static internal_texture_t* GetCachedTexture(video_t* video, const char* text)
 {
     for (size_t i = 0; i < video->textureCacheLength; i++)
     {
@@ -437,8 +510,19 @@ void V_DrawLevel(video_t* video, int level)
     
     const int pixelSize = CalculatePixelSize(video);
     const int x = (video->width - (pixelSize * (GRID_WIDTH + 2))) / 4;
+    const int y = (video->height + (pixelSize * (GRID_HEIGHT + 2))) / 4;
     
-    DrawText(video, x, 100, strBuf);
+    DrawText(video, x, y, strBuf);
+
+	int stageCalc = level / 10;
+	if (stageCalc > 25)
+		stageCalc = 25;
+	const char stage = 'A' + stageCalc;
+	snprintf(strBuf, sizeof strBuf, "Level: %c", stage);
+
+    const int y2 = (video->height + (pixelSize * (GRID_HEIGHT + 2) * 3)) / 4;
+
+	DrawText(video, x, y2, strBuf);
 }
 
 void V_DrawFailure(video_t* video, int level)
@@ -456,12 +540,7 @@ void V_Present(video_t* video)
 
 void V_Quit(video_t* video)
 {
-    for (size_t i = 0; i < video->textureCacheLength; i++)
-    {
-        SDL_DestroyTexture(video->textureCache[i].handle);
-        S_Free(video->alloc, video->textureCache[i].name);
-    }
-    S_Free(video->alloc, video->textureCache);
+	ClearTextureCache(video);
     
     TTF_CloseFont(video->font);
     
@@ -480,4 +559,20 @@ void V_WindowResized(video_t* video, int w, int h)
 {
     video->width = w;
     video->height = h;
+
+	float m;
+	if (w > h)
+		m = h;
+	else
+		m = w;
+
+	// just a random quadratic formula formed from
+	// (0, 4)
+	// (1024, 28)
+	// (2000, 48)
+	// x being max size and y being font pt size
+	const int pt = 0.0000015 * m * m + 0.025 * m + 4;
+	printf("%.2f, %d\n", m, pt);
+	TTF_SetFontSize(video->font, pt);
+	ClearTextureCache(video);
 }
