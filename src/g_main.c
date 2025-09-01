@@ -307,10 +307,6 @@ static bool ChooseRandomPiece(game_t* game)
     
     const int type = rand() % PIECETYPE_END;
     game->currPieceDrop = game->pieceDropSpeed;
-    if (game->level++ % 5 == 0 && game->pieceDropSpeed > 4)
-    {
-        game->pieceDropSpeed--;
-    }
     
     G_CreatePiece(game->currPiece, type, spawnX, spawnY);
 	game->pieceExists = true;
@@ -361,10 +357,15 @@ inline static void TryRunTicks(game_t* game)
                 }
             }
             
-            if (G_TryBoardClear(game->board) && game->pieceDropSpeed > 4)
-            {
-                game->pieceDropSpeed--;
-            }
+            if (G_TryBoardClear(game->board))
+			{
+				game->level += 1;
+				if (game->pieceDropSpeed > 8 &&
+					(game->level % 10) == 0)
+				{
+					game->pieceDropSpeed--;
+				}
+			}
             break;
         case GAMESTATE_FAIL:
             if (--game->failTimer == 0)
