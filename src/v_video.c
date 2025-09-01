@@ -572,7 +572,6 @@ void V_WindowResized(video_t* video, int w, int h)
 	// (2000, 48)
 	// x being max size and y being font pt size
 	const int pt = 0.0000015 * m * m + 0.025 * m + 4;
-	printf("%.2f, %d\n", m, pt);
 	TTF_SetFontSize(video->font, pt);
 	ClearTextureCache(video);
 }
