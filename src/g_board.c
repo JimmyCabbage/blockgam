@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2023-2024 Ryan Rhee
+    Copyright (C) 2023-2025 Ryan Rhee
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,8 +34,10 @@ struct board_s
 board_t* G_CreateBoard(struct alloc_s* alloc)
 {
     board_t* board = S_Allocate(alloc, sizeof(board_t));
+
+	board->alloc = alloc;
     
-    board->grid = S_Allocate(alloc, GRID_SIZE);
+    board->grid = S_Allocate(board->alloc, GRID_SIZE);
     memset(board->grid, 0, GRID_SIZE);
     
     return board;
