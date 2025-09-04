@@ -311,7 +311,12 @@ static internal_texture_t* GetCachedTexture(video_t* video, const char* text)
     video->textureCache = S_Reallocate(video->alloc, video->textureCache, sizeof(internal_texture_t) * video->textureCacheLength);
     
     SDL_Color textColor = { 255, 255, 255, 255 };
-    SDL_Surface* surface = TTF_RenderText_Solid(video->font, text, textColor);
+    SDL_Surface* surface = TTF_RenderUTF8_Solid(video->font, text, textColor);
+	if (!surface)
+	{
+		printf("Couldn't render text \"%s\": %s", text, SDL_GetError());
+		return NULL;
+	}
     
     internal_texture_t* texture = video->textureCache + newTextureNum;
     
@@ -320,6 +325,10 @@ static internal_texture_t* GetCachedTexture(video_t* video, const char* text)
     memcpy(texture->name, text, nameLength);
     
     texture->handle = SDL_CreateTextureFromSurface(video->renderer, surface);
+	if (!texture->handle)
+	{
+		printf("Failed to convert SDL_Surface to SDL_Texture: %s", SDL_GetError());
+	}
     
     texture->width = surface->w;
     texture->height = surface->h;
@@ -332,6 +341,8 @@ static internal_texture_t* GetCachedTexture(video_t* video, const char* text)
 static void DrawText(video_t* video, int x, int y, const char* text)
 {
     internal_texture_t* texture = GetCachedTexture(video, text);
+	if (!texture || !texture->handle)
+		return;
     
     SDL_Rect rect =
     {

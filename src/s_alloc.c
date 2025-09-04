@@ -23,6 +23,7 @@
 struct alloc_s
 {
     int totalAlloc;
+	int numAllocs;
     //empty for now
 };
 
@@ -30,6 +31,7 @@ alloc_t* S_CreateAlloc()
 {
     alloc_t* alloc = malloc(sizeof(alloc_t));
     alloc->totalAlloc = 0;
+    alloc->numAllocs = 0;
 
     return alloc;
 }
@@ -42,6 +44,8 @@ void S_DestroyAlloc(alloc_t* alloc)
     }
 
     printf("Bytes allocated: %d\n", alloc->totalAlloc);
+	if (alloc->numAllocs > 0)
+		printf("Uh oh, memory leaks?: %d\n", alloc->numAllocs);
     free(alloc);
 }
 
@@ -57,6 +61,7 @@ void* S_Allocate(alloc_t* alloc, size_t size)
     memset(ptr, 0, size);
 
     alloc->totalAlloc += size;
+	alloc->numAllocs += 1;
 
     return ptr;
 }
@@ -69,5 +74,6 @@ void* S_Reallocate(alloc_t* alloc, void* ptr, size_t size)
 void S_Free(alloc_t* alloc, void* ptr)
 {
     free(ptr);
+	alloc->numAllocs -= 1;
 }
 
