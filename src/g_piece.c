@@ -151,6 +151,9 @@ inline static bool IsRotatableType(piecetype_t type)
 
 inline static bool CanPiece(piece_t* piece, int xoff, int yoff, board_t* board)
 {
+    if (!piece)
+	return false;
+
     for (int i = -PIECE_HALF_WIDTH; i <= PIECE_HALF_WIDTH; i++)
     {
         for (int j = -PIECE_HALF_HEIGHT; j <= PIECE_HALF_HEIGHT; j++)

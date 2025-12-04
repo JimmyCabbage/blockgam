@@ -56,6 +56,11 @@ struct game_s
     uint64_t lastTick;
 
     uint64_t failTimer;
+
+    // set to a value when a line is cleared
+    // every tick, decrements
+    // when 0, game continues
+    uint64_t clearTimer;
 };
 
 typedef struct gameitem_s
@@ -78,6 +83,8 @@ static void StartGame(menuitem_t* item)
     start->game->currPieceDrop = 0;
 
     start->game->lastTick = G_GetTimerTicks(start->game->timer);
+
+    start->game->clearTimer = 0;
 }
 
 static void Settings(menuitem_t* item)
@@ -335,11 +342,21 @@ inline static void TryRunTicks(game_t* game)
         switch (game->state)
         {
         case GAMESTATE_PLAY:
+	    // wait a bit of time after a line clear to continue ticking
+            if (game->clearTimer > 0)
+            {
+		game->clearTimer -= 1;
+		continue;
+	    }
+
             if (!game->pieceExists)
             {
+                // if we can't fit a piece at the starting location,
+		// fail the player
                 if (!ChooseRandomPiece(game))
                 {
                     game->state = GAMESTATE_FAIL;
+		    // wait for 4 sec on the fail screen
                     game->failTimer = TICK_RATE * 4;
                     continue;
                 }
@@ -360,14 +377,20 @@ inline static void TryRunTicks(game_t* game)
             if (G_TryBoardClear(game->board))
             {
                 game->level += 1;
+                // keep decreasing the drop time to make it harder
+		// as the game progresses
                 if (game->pieceDropSpeed > 8 &&
                     (game->level % 10) == 0)
                 {
                     game->pieceDropSpeed--;
                 }
+
+		// wait ~.1s for a line to clear
+		game->clearTimer = 0.1 * TICK_RATE;
             }
             break;
         case GAMESTATE_FAIL:
+	    // once our time on this screen is up, return back to the menu
             if (--game->failTimer == 0)
             {
                 game->state = GAMESTATE_MENU;

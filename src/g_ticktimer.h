@@ -24,6 +24,7 @@ struct alloc_s;
 
 typedef struct ticktimer_s ticktimer_t;
 
+// 64 ticks in a second, so 15.625 ms per tick
 #define TICK_RATE (64)
 
 ticktimer_t* G_CreateTimer(struct alloc_s* alloc);
