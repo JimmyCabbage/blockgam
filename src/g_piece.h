@@ -38,7 +38,7 @@ typedef enum piecetype_e
     PIECETYPE_S,
     PIECETYPE_Z,
     PIECETYPE_LONG,
-    PIECETYPE_END
+    PIECETYPE_END,
 } piecetype_t;
 
 piece_t* G_AllocatePiece(struct alloc_s* alloc);
@@ -63,4 +63,4 @@ int G_GetPieceX(piece_t* piece);
 
 int G_GetPieceY(piece_t* piece);
 
-#endif //TEBRIS_G_PIECE_H
+#endif  // TEBRIS_G_PIECE_H

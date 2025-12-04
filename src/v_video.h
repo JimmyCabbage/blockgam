@@ -18,8 +18,8 @@
 #ifndef TEBRIS_V_VIDEO_H
 #define TEBRIS_V_VIDEO_H
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 struct menu_s;
 struct board_s;
@@ -50,4 +50,4 @@ void V_Quit(video_t* video);
 
 void V_WindowResized(video_t* video, int w, int h);
 
-#endif //TEBRIS_V_VIDEO_H
+#endif  // TEBRIS_V_VIDEO_H

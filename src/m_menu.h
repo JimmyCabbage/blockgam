@@ -58,4 +58,4 @@ void M_UseCurrentItem(menu_t* menu);
 
 void M_Quit(menu_t* menu);
 
-#endif //TEBRIS_M_MENU_H
+#endif  // TEBRIS_M_MENU_H

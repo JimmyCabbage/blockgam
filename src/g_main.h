@@ -24,7 +24,7 @@ typedef enum gamestate_e
 {
     GAMESTATE_MENU,
     GAMESTATE_PLAY,
-    GAMESTATE_FAIL
+    GAMESTATE_FAIL,
 } gamestate_t;
 
 typedef struct game_s game_t;
@@ -35,4 +35,4 @@ void G_RunGame(game_t* game);
 
 void G_Quit(game_t* game);
 
-#endif //TEBRIS_G_MAIN_H
+#endif  // TEBRIS_G_MAIN_H

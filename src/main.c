@@ -18,8 +18,8 @@
 #define SDL_MAIN_HANDLED
 #include "SDL.h"
 
-#include "s_alloc.h"
 #include "g_main.h"
+#include "s_alloc.h"
 
 int main(int argc, char** argv)
 {
@@ -27,7 +27,7 @@ int main(int argc, char** argv)
     if (!alloc)
     {
         fputs("Failed to initialize memory allocator\n", stderr);
-		return 1;
+        return 1;
     }
 
     game_t* game = G_Init(alloc);
@@ -38,9 +38,9 @@ int main(int argc, char** argv)
     }
 
     G_RunGame(game);
-    
+
     G_Quit(game);
-   
+
     S_DestroyAlloc(alloc);
 
     return 0;

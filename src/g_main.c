@@ -17,44 +17,44 @@
 
 #include "g_main.h"
 
-#include <stdlib.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <time.h>
 
 #include "SDL.h"
 
-#include "s_alloc.h"
-#include "v_video.h"
-#include "m_menu.h"
 #include "g_board.h"
 #include "g_piece.h"
 #include "g_ticktimer.h"
+#include "m_menu.h"
+#include "s_alloc.h"
+#include "v_video.h"
 
 struct game_s
 {
     alloc_t* alloc;
 
     bool run;
-    
+
     gamestate_t state;
-    
+
     video_t* video;
-    
+
     menu_t* menu;
-    
+
     board_t* board;
-    
+
     int level;
     uint64_t pieceDropSpeed;
-    
-	bool pieceExists;
+
+    bool pieceExists;
     piece_t* currPiece;
     uint64_t currPieceDrop;
-    
+
     ticktimer_t* timer;
-    
+
     uint64_t lastTick;
-    
+
     uint64_t failTimer;
 };
 
@@ -67,16 +67,16 @@ typedef struct gameitem_s
 static void StartGame(menuitem_t* item)
 {
     gameitem_t* start = (gameitem_t*)item;
-    
+
     G_ClearBoard(start->game->board);
     start->game->state = GAMESTATE_PLAY;
-    
+
     start->game->level = 0;
     start->game->pieceDropSpeed = 24;
-    
+
     start->game->pieceExists = false;
     start->game->currPieceDrop = 0;
-    
+
     start->game->lastTick = G_GetTimerTicks(start->game->timer);
 }
 
@@ -104,25 +104,25 @@ inline static bool CreateMenus(game_t* game)
 
     mainMenuList->items = S_Allocate(game->alloc, 3 * sizeof(menuitem_t*));
     mainMenuList->numItems = 3;
-    
+
     gameitem_t* start = S_Allocate(game->alloc, sizeof(gameitem_t));
     mainMenuList->items[0] = &start->item;
     start->item.callback = StartGame;
     start->item.label = "Start Game";
     start->game = game;
-    
+
     gameitem_t* settings = S_Allocate(game->alloc, sizeof(gameitem_t));
     mainMenuList->items[1] = &settings->item;
     settings->item.callback = Settings;
     settings->item.label = "Settings";
     settings->game = game;
-    
+
     gameitem_t* quit = S_Allocate(game->alloc, sizeof(gameitem_t));
     mainMenuList->items[2] = &quit->item;
     quit->item.callback = Quit;
     quit->item.label = "Quit";
     quit->game = game;
-    
+
     M_SetList(game->menu, mainMenuId);
 
     return true;
@@ -133,7 +133,7 @@ game_t* G_Init(alloc_t* alloc)
     SDL_SetMainReady();
 
     srand(time(NULL));
-    
+
     game_t* game = S_Allocate(alloc, sizeof(game_t));
     if (!game)
     {
@@ -144,46 +144,46 @@ game_t* G_Init(alloc_t* alloc)
     game->alloc = alloc;
 
     game->run = false;
-    
+
     game->state = GAMESTATE_MENU;
-    
+
     if (!(game->video = V_Init(alloc, 1024, 724)))
     {
         fputs("Failed to initialize video\n", stderr);
         goto fail;
     }
-    
+
     if (!(game->menu = M_Init(alloc)))
     {
         fputs("Failed to initialize menu\n", stderr);
         goto fail;
     }
-    
+
     if (!(game->board = G_CreateBoard(alloc)))
     {
         fputs("Failed to initialize board\n", stderr);
         goto fail;
     }
-    
-	game->pieceExists = false;
+
+    game->pieceExists = false;
     game->currPiece = G_AllocatePiece(game->alloc);
     game->currPieceDrop = 0;
-    
+
     game->timer = G_CreateTimer(alloc);
-    
+
     game->lastTick = 0;
-    
+
     if (!CreateMenus(game))
     {
         fputs("Failed to create sub-menus\n", stderr);
         goto fail;
     }
-    
+
     return game;
 
 fail:
-	if (game)
-		G_Quit(game);
+    if (game)
+        G_Quit(game);
 
     return NULL;
 }
@@ -193,10 +193,10 @@ inline static bool TryDropPiece(game_t* game)
     if (G_TryPieceDrop(game->currPiece, game->board))
     {
         game->currPieceDrop = game->pieceDropSpeed;
-        
+
         return true;
     }
-    
+
     return false;
 }
 
@@ -273,7 +273,7 @@ inline static void ProcessEvents(game_t* game)
 inline static void DrawScreen(game_t* game)
 {
     V_Clear(game->video);
-    
+
     switch (game->state)
     {
     case GAMESTATE_MENU:
@@ -291,7 +291,7 @@ inline static void DrawScreen(game_t* game)
         V_DrawFailure(game->video, game->level);
         break;
     }
-    
+
     V_Present(game->video);
 }
 
@@ -299,19 +299,19 @@ static bool ChooseRandomPiece(game_t* game)
 {
     const int spawnX = GRID_WIDTH / 2;
     const int spawnY = 24;
-    
+
     if (G_GetBoardSpace(game->board, spawnX, spawnY) != 0)
     {
         return false;
     }
-    
+
     const int type = rand() % PIECETYPE_END;
     game->currPieceDrop = game->pieceDropSpeed;
-    
-    G_CreatePiece(game->currPiece, type, spawnX, spawnY);
-	game->pieceExists = true;
 
-	return true;
+    G_CreatePiece(game->currPiece, type, spawnX, spawnY);
+    game->pieceExists = true;
+
+    return true;
 }
 
 inline static void TryRunTicks(game_t* game)
@@ -320,16 +320,16 @@ inline static void TryRunTicks(game_t* game)
     {
         return;
     }
-    
+
     const uint64_t currTicks = G_GetTimerTicks(game->timer);
     const uint64_t ticks = currTicks - game->lastTick;
     game->lastTick = currTicks;
-    
+
     if (ticks == 0)
     {
         return;
     }
-    
+
     for (uint64_t i = 0; i < ticks; i++)
     {
         switch (game->state)
@@ -344,7 +344,7 @@ inline static void TryRunTicks(game_t* game)
                     continue;
                 }
             }
-            
+
             if (game->pieceExists)
             {
                 if (game->currPieceDrop-- == 0)
@@ -356,16 +356,16 @@ inline static void TryRunTicks(game_t* game)
                     }
                 }
             }
-            
+
             if (G_TryBoardClear(game->board))
-			{
-				game->level += 1;
-				if (game->pieceDropSpeed > 8 &&
-					(game->level % 10) == 0)
-				{
-					game->pieceDropSpeed--;
-				}
-			}
+            {
+                game->level += 1;
+                if (game->pieceDropSpeed > 8 &&
+                    (game->level % 10) == 0)
+                {
+                    game->pieceDropSpeed--;
+                }
+            }
             break;
         case GAMESTATE_FAIL:
             if (--game->failTimer == 0)
@@ -380,33 +380,33 @@ inline static void TryRunTicks(game_t* game)
 void G_RunGame(game_t* game)
 {
     game->run = true;
-    
+
     while (game->run)
     {
         TryRunTicks(game);
         ProcessEvents(game);
         DrawScreen(game);
     }
-    
+
     game->run = false;
 }
 
 void G_Quit(game_t* game)
 {
     if (game->currPiece)
-		G_DestroyPiece(game->currPiece);
-    
-	if (game->timer)
-		G_DestroyTimer(game->timer);
-    
-	if (game->board)
-		G_DestroyBoard(game->board);
-    
-	if (game->menu)
-		M_Quit(game->menu);
-    
-	if (game->video)
-		V_Quit(game->video);
-    
+        G_DestroyPiece(game->currPiece);
+
+    if (game->timer)
+        G_DestroyTimer(game->timer);
+
+    if (game->board)
+        G_DestroyBoard(game->board);
+
+    if (game->menu)
+        M_Quit(game->menu);
+
+    if (game->video)
+        V_Quit(game->video);
+
     S_Free(game->alloc, game);
 }

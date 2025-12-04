@@ -30,20 +30,20 @@ struct ticktimer_s
 ticktimer_t* G_CreateTimer(struct alloc_s* alloc)
 {
     SDL_InitSubSystem(SDL_INIT_TIMER);
-    
+
     ticktimer_t* timer = S_Allocate(alloc, sizeof(ticktimer_t));
-    
+
     timer->alloc = alloc;
 
     timer->startTime = SDL_GetTicks64();
-    
+
     return timer;
 }
 
 void G_DestroyTimer(ticktimer_t* timer)
 {
     S_Free(timer->alloc, timer);
-    
+
     SDL_QuitSubSystem(SDL_INIT_TIMER);
 }
 

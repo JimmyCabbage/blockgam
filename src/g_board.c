@@ -17,8 +17,8 @@
 
 #include "g_board.h"
 
-#include <stdlib.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "s_alloc.h"
@@ -35,11 +35,11 @@ board_t* G_CreateBoard(struct alloc_s* alloc)
 {
     board_t* board = S_Allocate(alloc, sizeof(board_t));
 
-	board->alloc = alloc;
-    
+    board->alloc = alloc;
+
     board->grid = S_Allocate(board->alloc, GRID_SIZE);
     memset(board->grid, 0, GRID_SIZE);
-    
+
     return board;
 }
 
@@ -73,11 +73,11 @@ void G_SetBoardSpace(board_t* board, int x, int y, uint8_t val)
 bool G_TryBoardClear(board_t* board)
 {
     int lineClear = -1;
-    
+
     for (int j = 0; j < GRID_HEIGHT; j++)
     {
         bool validLine = true;
-        
+
         for (int i = 0; i < GRID_WIDTH; i++)
         {
             if (G_GetBoardSpace(board, i, j) == 0)
@@ -86,14 +86,14 @@ bool G_TryBoardClear(board_t* board)
                 break;
             }
         }
-        
+
         if (validLine)
         {
             lineClear = j;
             break;
         }
     }
-    
+
     if (lineClear >= 0)
     {
         if (lineClear == 0)

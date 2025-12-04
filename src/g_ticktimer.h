@@ -32,4 +32,4 @@ void G_DestroyTimer(ticktimer_t* timer);
 
 uint64_t G_GetTimerTicks(ticktimer_t* timer);
 
-#endif //TEBRIS_G_TICKTIMER_H
+#endif  // TEBRIS_G_TICKTIMER_H

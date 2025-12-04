@@ -18,12 +18,12 @@
 #include "g_piece.h"
 
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
-#include "s_alloc.h"
 #include "g_board.h"
+#include "s_alloc.h"
 
 struct piece_s
 {
@@ -41,10 +41,10 @@ struct piece_s
 
 inline static uint8_t* GetLoc(uint8_t* data, int x, int y)
 {
-    //normalize because (0, 0) is the center of our piece data thing
+    // normalize because (0, 0) is the center of our piece data thing
     const int normX = x + PIECE_HALF_WIDTH;
     const int normY = y + PIECE_HALF_HEIGHT;
-    
+
     return data + (PIECE_WIDTH * normY + normX);
 }
 
@@ -59,20 +59,20 @@ piece_t* G_AllocatePiece(struct alloc_s* alloc)
     piece_t* piece = S_Allocate(alloc, sizeof(piece_t));
     piece->alloc = alloc;
     piece->data = S_Allocate(alloc, PIECE_SIZE);
-    
+
     piece->oldData = S_Allocate(alloc, PIECE_SIZE);
 
-	return piece;
+    return piece;
 }
 
-void G_CreatePiece(piece_t *piece, piecetype_t type, int x, int y)
+void G_CreatePiece(piece_t* piece, piecetype_t type, int x, int y)
 {
     piece->type = type;
-    
+
     piece->x = x;
     piece->y = y;
-    
-	memset(piece->data, 0, PIECE_SIZE);
+
+    memset(piece->data, 0, PIECE_SIZE);
 
     switch (type)
     {
@@ -132,9 +132,9 @@ void G_DestroyPiece(piece_t* piece)
     }
 
     S_Free(piece->alloc, piece->oldData);
-    
+
     S_Free(piece->alloc, piece->data);
-    
+
     S_Free(piece->alloc, piece);
 }
 
@@ -160,25 +160,25 @@ inline static bool CanPiece(piece_t* piece, int xoff, int yoff, board_t* board)
             {
                 continue;
             }
-            
-            //case for hitting bottom of screen
+
+            // case for hitting bottom of screen
             if ((piece->y + j + yoff) == -1)
             {
                 return false;
             }
-            
-            //case for hitting right side of screen
+
+            // case for hitting right side of screen
             if ((piece->x + i + xoff) >= GRID_WIDTH)
             {
                 return false;
             }
-            
-            //case for hitting left side of screen
+
+            // case for hitting left side of screen
             if ((piece->x + i + xoff) < 0)
             {
                 return false;
             }
-            
+
             uint8_t t = G_GetBoardSpace(board, piece->x + i + xoff, piece->y + j + yoff);
             if (t > 0)
             {
@@ -186,7 +186,7 @@ inline static bool CanPiece(piece_t* piece, int xoff, int yoff, board_t* board)
             }
         }
     }
-    
+
     return true;
 }
 
@@ -213,7 +213,7 @@ bool G_TryPieceDrop(piece_t* piece, board_t* board)
         piece->y -= 1;
         return true;
     }
-    
+
     return false;
 }
 
@@ -223,9 +223,9 @@ void G_TryPieceRotate(piece_t* piece, board_t* board)
     {
         return;
     }
-    
+
     memcpy(piece->oldData, piece->data, PIECE_SIZE);
-    
+
     for (int x = -PIECE_HALF_WIDTH; x <= PIECE_HALF_WIDTH; x++)
     {
         for (int y = -PIECE_HALF_HEIGHT; y <= PIECE_HALF_HEIGHT; y++)
@@ -233,7 +233,7 @@ void G_TryPieceRotate(piece_t* piece, board_t* board)
             *GetLoc(piece->data, -y, x) = *GetLoc(piece->oldData, x, y);
         }
     }
-    
+
     if (!CanPiece(piece, 0, 0, board))
     {
         memcpy(piece->data, piece->oldData, PIECE_SIZE);
@@ -251,7 +251,7 @@ void G_InsertPiece(piece_t* piece, board_t* board)
             {
                 continue;
             }
-            
+
             G_SetBoardSpace(board, piece->x + i, piece->y + j, c);
         }
     }

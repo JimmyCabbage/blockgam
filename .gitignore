@@ -1,6 +1,7 @@
 *
 .*
 !.gitignore
+!.clang-format
 !cmake/
 !cmake/SDL2Config.cmake
 !src/

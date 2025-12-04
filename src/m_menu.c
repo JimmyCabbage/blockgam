@@ -24,10 +24,10 @@
 struct menu_s
 {
     alloc_t* alloc;
-    
+
     menulist_t** lists;
     int32_t numLists;
-    
+
     int32_t currentList;
     size_t currentItem;
 };
@@ -35,26 +35,26 @@ struct menu_s
 menu_t* M_Init(struct alloc_s* alloc)
 {
     menu_t* menu = S_Allocate(alloc, sizeof(menu_t));
-    
+
     menu->alloc = alloc;
 
     menu->lists = NULL;
     menu->numLists = 0;
-    
+
     menu->currentList = -1;
     menu->currentItem = 0;
-    
+
     return menu;
 }
 
 int32_t M_AddList(menu_t* menu, menulist_t* list)
 {
     const int32_t currentList = menu->numLists++;
-    
+
     menu->lists = S_Reallocate(menu->alloc, menu->lists, menu->numLists * sizeof(menulist_t*));
-    
+
     menu->lists[currentList] = list;
-    
+
     return currentList;
 }
 
@@ -95,7 +95,7 @@ void M_UseCurrentItem(menu_t* menu)
     currItem->callback(currItem);
 }
 
-void M_Quit(menu_t *menu)
+void M_Quit(menu_t* menu)
 {
     if (!menu)
     {
@@ -108,13 +108,13 @@ void M_Quit(menu_t *menu)
         {
             S_Free(menu->alloc, menu->lists[i]->items[j]);
         }
-        
+
         S_Free(menu->alloc, menu->lists[i]->items);
-        
+
         S_Free(menu->alloc, menu->lists[i]);
     }
-    
+
     S_Free(menu->alloc, menu->lists);
-    
+
     S_Free(menu->alloc, menu);
 }
