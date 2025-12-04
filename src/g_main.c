@@ -279,7 +279,11 @@ inline static void ProcessEvents(game_t* game)
 
 inline static void DrawScreen(game_t* game)
 {
-    V_Clear(game->video);
+    // flash the screen when clearing
+    if (game->clearTimer > 0)
+	V_Clear(game->video, 30, 30, 30);
+    else
+	V_Clear(game->video, 0, 0, 0);
 
     switch (game->state)
     {

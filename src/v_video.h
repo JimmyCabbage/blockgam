@@ -30,7 +30,8 @@ typedef struct video_s video_t;
 
 video_t* V_Init(struct alloc_s* alloc, int width, int height);
 
-void V_Clear(video_t* video);
+// r g b is colour of background
+void V_Clear(video_t* video, int r, int g, int b);
 
 void V_SetVisibility(video_t* video, bool visible);
 

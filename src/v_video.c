@@ -270,9 +270,9 @@ video_t* V_Init(alloc_t* alloc, int width, int height)
     return video;
 }
 
-void V_Clear(video_t* video)
+void V_Clear(video_t* video, int r, int g, int b)
 {
-    SDL_SetRenderDrawColor(video->renderer, 0, 0, 0, 255);
+    SDL_SetRenderDrawColor(video->renderer, r, g, b, 255);
     SDL_RenderClear(video->renderer);
 }
 
