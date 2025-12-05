@@ -439,18 +439,29 @@ inline static void DrawRectBoardSpace(video_t* video, int x, int y, uint8_t c)
         break;
     }
 
-    SDL_SetRenderDrawColor(video->renderer, color.r, color.g, color.b, color.a);
-
     const int pixelSize = CalculatePixelSize(video);
 
     const int startX = (video->width - (pixelSize * (GRID_WIDTH + 2))) / 2;
     const int startY = (video->height / 8);
+
+    SDL_SetRenderDrawColor(video->renderer, color.r * 0.9, color.g * 0.9, color.b * 0.9, color.a);
 
     SDL_Rect drect = {
         .x = x * pixelSize + startX,
         .y = video->height - y * pixelSize - startY,
         .w = pixelSize,
         .h = pixelSize
+    };
+    SDL_RenderFillRect(video->renderer, &drect);
+
+    SDL_SetRenderDrawColor(video->renderer, color.r, color.g, color.b, color.a);
+
+    const int offset = pixelSize * 0.2 / 2;
+    drect = (SDL_Rect){
+        .x = x * pixelSize + startX + offset,
+        .y = video->height - y * pixelSize - startY + offset,
+        .w = pixelSize * 0.8,
+        .h = pixelSize * 0.8
     };
     SDL_RenderFillRect(video->renderer, &drect);
 }
